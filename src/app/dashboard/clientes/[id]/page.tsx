@@ -25,6 +25,9 @@ import {
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import type { Client } from '@/types'
+import type { Database } from '@/types/database'
+
+type ClientUpdate = Database['public']['Tables']['clients']['Update']
 
 export default function EditClientPage() {
   const router = useRouter()
@@ -78,23 +81,25 @@ export default function EditClientPage() {
     mutationFn: async (data: ClientFormValues) => {
       const supabase = createClient()
       
+      const updateData: ClientUpdate = {
+        name: data.name,
+        phone: data.phone,
+        email: data.email || null,
+        notes: data.notes || null,
+        desired_transaction_type: data.desired_transaction_type,
+        desired_property_type: data.desired_property_type || null,
+        desired_bedrooms_min: data.desired_bedrooms_min ?? null,
+        desired_bedrooms_max: data.desired_bedrooms_max ?? null,
+        desired_price_min: data.desired_price_min ? toCents(data.desired_price_min) : null,
+        desired_price_max: data.desired_price_max ? toCents(data.desired_price_max) : null,
+        city: data.city || null,
+        neighborhood: data.neighborhood || null,
+        stage_id: data.stage_id,
+      }
+      
       const { error } = await supabase
         .from('clients')
-        .update({
-          name: data.name,
-          phone: data.phone,
-          email: data.email || null,
-          notes: data.notes || null,
-          desired_transaction_type: data.desired_transaction_type,
-          desired_property_type: data.desired_property_type || null,
-          desired_bedrooms_min: data.desired_bedrooms_min || null,
-          desired_bedrooms_max: data.desired_bedrooms_max || null,
-          desired_price_min: data.desired_price_min ? toCents(data.desired_price_min) : null,
-          desired_price_max: data.desired_price_max ? toCents(data.desired_price_max) : null,
-          city: data.city || null,
-          neighborhood: data.neighborhood || null,
-          stage_id: data.stage_id,
-        })
+        .update(updateData)
         .eq('id', clientId)
       
       if (error) {

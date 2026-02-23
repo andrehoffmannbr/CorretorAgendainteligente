@@ -24,6 +24,9 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import type { Database } from '@/types/database'
+
+type PropertyInsert = Database['public']['Tables']['properties']['Insert']
 
 export default function NewPropertyPage() {
   const router = useRouter()
@@ -52,7 +55,7 @@ export default function NewPropertyPage() {
       
       const supabase = createClient()
       
-      const { error } = await supabase.from('properties').insert({
+      const insertData: PropertyInsert = {
         tenant_id: user.tenant_id,
         created_by: user.id,
         title: data.title || null,
@@ -60,12 +63,14 @@ export default function NewPropertyPage() {
         transaction_type: data.transaction_type,
         property_type: data.property_type,
         bedrooms: data.bedrooms,
-        bathrooms: data.bathrooms || null,
-        area_m2: data.area_m2 || null,
+        bathrooms: data.bathrooms ?? null,
+        area_m2: data.area_m2 ?? null,
         price: toCents(data.price),
         city: data.city,
         neighborhood: data.neighborhood || null,
-      })
+      }
+      
+      const { error } = await supabase.from('properties').insert(insertData)
       
       if (error) throw error
     },

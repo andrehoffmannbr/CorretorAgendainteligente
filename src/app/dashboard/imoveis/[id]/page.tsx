@@ -25,6 +25,9 @@ import {
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import type { Property, PropertyStatus } from '@/types'
+import type { Database } from '@/types/database'
+
+type PropertyUpdate = Database['public']['Tables']['properties']['Update']
 
 export default function EditPropertyPage() {
   const router = useRouter()
@@ -76,21 +79,23 @@ export default function EditPropertyPage() {
     mutationFn: async (data: PropertyFormValues & { status: PropertyStatus }) => {
       const supabase = createClient()
       
+      const updateData: PropertyUpdate = {
+        title: data.title || null,
+        description: data.description || null,
+        transaction_type: data.transaction_type,
+        property_type: data.property_type,
+        status: data.status,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms ?? null,
+        area_m2: data.area_m2 ?? null,
+        price: toCents(data.price),
+        city: data.city,
+        neighborhood: data.neighborhood || null,
+      }
+      
       const { error } = await supabase
         .from('properties')
-        .update({
-          title: data.title || null,
-          description: data.description || null,
-          transaction_type: data.transaction_type,
-          property_type: data.property_type,
-          status: data.status,
-          bedrooms: data.bedrooms,
-          bathrooms: data.bathrooms || null,
-          area_m2: data.area_m2 || null,
-          price: toCents(data.price),
-          city: data.city,
-          neighborhood: data.neighborhood || null,
-        })
+        .update(updateData)
         .eq('id', propertyId)
       
       if (error) throw error

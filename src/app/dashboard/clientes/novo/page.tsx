@@ -23,6 +23,9 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import type { Database } from '@/types/database'
+
+type ClientInsert = Database['public']['Tables']['clients']['Insert']
 
 export default function NewClientPage() {
   const router = useRouter()
@@ -57,7 +60,7 @@ export default function NewClientPage() {
       
       const supabase = createClient()
       
-      const { error } = await supabase.from('clients').insert({
+      const insertData: ClientInsert = {
         tenant_id: user.tenant_id,
         created_by: user.id,
         name: data.name,
@@ -66,14 +69,16 @@ export default function NewClientPage() {
         notes: data.notes || null,
         desired_transaction_type: data.desired_transaction_type,
         desired_property_type: data.desired_property_type || null,
-        desired_bedrooms_min: data.desired_bedrooms_min || null,
-        desired_bedrooms_max: data.desired_bedrooms_max || null,
+        desired_bedrooms_min: data.desired_bedrooms_min ?? null,
+        desired_bedrooms_max: data.desired_bedrooms_max ?? null,
         desired_price_min: data.desired_price_min ? toCents(data.desired_price_min) : null,
         desired_price_max: data.desired_price_max ? toCents(data.desired_price_max) : null,
         city: data.city || null,
         neighborhood: data.neighborhood || null,
         stage_id: data.stage_id,
-      })
+      }
+      
+      const { error } = await supabase.from('clients').insert(insertData)
       
       if (error) {
         if (error.message.includes('duplicate key') && error.message.includes('phone_normalized')) {
